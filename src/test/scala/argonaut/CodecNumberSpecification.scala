@@ -1,17 +1,20 @@
 package argonaut
 
-import Data._
-import org.specs2._, org.specs2.specification._
-import org.specs2.matcher._
-import scalaz._, Scalaz._
+import org.scalacheck._, Prop.forAll
 import Argonaut._
 
-object CodecNumberSpecification extends Specification with ScalaCheck {
+object CodecNumberSpecification extends Properties("Codec Numbers") {
 
-  def is = "Codec Numbers" ^
-    "double that is not NaN or infinity encodes to number" ! prop { (xs: List[Double]) => xs.filter(x => !x.isNaN && !x.isInfinity).asJson.array.forall(_.forall(_.isNumber)) } ^
-    "int always encodes to number" ! prop { (xs: List[Int]) => xs.asJson.array.forall(_.forall(_.isNumber)) } ^
-    "long always encodes to string" ! prop { (xs: List[Long]) => xs.asJson.array.forall(_.forall(_.isString)) } ^
-    end
+  property("double that is not NaN or infinity encodes to number") = forAll{ xs: List[Double] =>
+    xs.filter(x => !x.isNaN && !x.isInfinity).asJson.array.forall(_.forall(_.isNumber))
+  }
+
+  property("int always encodes to number") = forAll{ xs: List[Int] =>
+    xs.asJson.array.forall(_.forall(_.isNumber))
+  }
+
+  property("long always encodes to string") = forAll{ xs: List[Long] =>
+    xs.asJson.array.forall(_.forall(_.isString))
+  }
 
 }

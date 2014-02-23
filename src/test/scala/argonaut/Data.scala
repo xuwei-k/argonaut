@@ -1,6 +1,6 @@
 package argonaut
 
-import scalaz._, Scalaz._
+import scalaz._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen.{frequency, choose, listOfN, value, oneOf}
 import Json._
@@ -28,7 +28,7 @@ object Data {
 
   def jsonObjectFieldsGenerator(depth: Int = maxJsonStructureDepth): Gen[Seq[(JString, Json)]] = listOfN(5, arbTuple2(Arbitrary(jsonStringGenerator), Arbitrary(jsonValueGenerator(depth - 1))).arbitrary)
 
-  def jsonObjectGenerator(depth: Int = maxJsonStructureDepth): Gen[JObject] = arbImmutableMap(Arbitrary(arbitrary[String]), Arbitrary(jsonValueGenerator(depth - 1))).arbitrary.map{map =>
+  def jsonObjectGenerator(depth: Int = maxJsonStructureDepth): Gen[JObject] = arbContainer2[Map, String, Json](arbTuple2(Arbitrary(arbitrary[String]), Arbitrary(jsonValueGenerator(depth - 1))), implicitly, implicitly).arbitrary.map{map =>
     JObject(JsonObject(InsertionMap(map.toSeq: _*)))
   }
 

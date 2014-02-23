@@ -3,45 +3,36 @@ package argonaut
 import org.scalacheck._, Prop._, Arbitrary._, Gen._
 import Data._
 import Argonaut._
-import org.specs2._, org.specs2.specification._
-import org.specs2.matcher._
-import scalaz._
-import Scalaz._
 
-object ACursorSpecification extends Specification with ScalaCheck {
+object ACursorSpecification extends Properties("ACursor"){
 
-  def is = "ACursor" ^
-    "History must reflect success after single step." ! prop((j: Json) => {
-      forAll((op: TestOp) => {
-        val r = step(j.acursor, op)
-        if (r.succeeded)
-          r.history.head.forall(h => h.isReattempt || h.succeeded)
-        else
-          r.history.head.exists(_.failed)
-      })
-    }) ^
-    "History must reflect success after multiple steps." ! prop((j: Json) => {
-      forAll((op: List[TestOp]) => {
-        val r = op.foldLeft(j.acursor)((acc, op) => step(acc, op))
-        if (r.succeeded)
-          r.history.head.forall(h => h.isReattempt || h.succeeded)
-        else
-          r.history.head.exists(_.failed)
-      })
-    }) ^
-    "Nothing accept reattempt may occur after failure." ! prop((j: Json) => {
-      forAll((op: List[TestOp]) => {
-        val r = op.foldLeft(j.acursor)((acc, op) => step(acc, op))
-        r.history.toList.inits.toList.forall(paths => paths match {
-          case init ::+ penultimate ::+ last =>
-            last.succeeded || last.isReattempt || penultimate.isReattempt
-          case init ::+ last  =>
-            last.succeeded || last.isReattempt || init.isEmpty
-          case _ =>
-            true
-        })
-      })
-    })
+  property("History must reflect success after single step.") = forAll{ (j: Json, op: TestOp) =>
+    val r = step(j.acursor, op)
+    if (r.succeeded)
+      r.history.head.forall(h => h.isReattempt || h.succeeded)
+    else
+      r.history.head.exists(_.failed)
+  }
+
+  property("History must reflect success after multiple steps.") = forAll{ (j: Json, op: List[TestOp]) =>
+    val r = op.foldLeft(j.acursor)(step)
+    if (r.succeeded)
+      r.history.head.forall(h => h.isReattempt || h.succeeded)
+    else
+      r.history.head.exists(_.failed)
+  }
+
+  property("Nothing accept reattempt may occur after failure.") = forAll{ (j: Json, op: List[TestOp]) =>
+    val r = op.foldLeft(j.acursor)((acc, op) => step(acc, op))
+    r.history.toList.inits.toList.forall{
+      case init ::+ penultimate ::+ last =>
+        last.succeeded || last.isReattempt || penultimate.isReattempt
+      case init ::+ last  =>
+        last.succeeded || last.isReattempt || init.isEmpty
+      case _ =>
+        true
+    }
+  }
 
   // To support 2.9 where :+ doesn't define an extractor.
   object ::+ {
@@ -97,7 +88,7 @@ object ACursorSpecification extends Specification with ScalaCheck {
   case object Delete extends TestOp
   case class Set(j: Json) extends TestOp
 
-  implicit val ArbitraryTestOp: Arbitrary[TestOp] =
+  implicit lazy val ArbitraryTestOp: Arbitrary[TestOp] =
     Arbitrary(Gen.frequency(
       (9, Gen.oneOf(Down, Up, Left, Right, Delete)),
       (1, arbitrary[Json] map (Set))
