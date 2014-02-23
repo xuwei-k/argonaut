@@ -17,7 +17,9 @@ object Boilerplate {
 
     val generatedCodecJson = write(dir / "argonaut" / "GeneratedCodecJsons.scala", genCodecJsons)
 
-    Seq(generatedDecodeJson, generatedEncodeJson, generatedCodecJson)
+    val generatedDerivingCodecJson = write(dir / "argonaut" / "GeneratedDerivingCodecJsons.scala", genDerivingCodecJsons)
+
+    Seq(generatedDecodeJson, generatedEncodeJson, generatedCodecJson, generatedDerivingCodecJson)
   }
 
   def header = {
@@ -37,6 +39,7 @@ object Boilerplate {
 
   def jsonStringParamNames(arity: Int): String = (1 to arity).map(n => "%sn".format(arityChars(n).toLowerCase)).mkString(", ")
 
+  def codecJsonContextArities(n: Int): String = (1 to n).map(n => "%s: EncodeJson: DecodeJson".format(arityChars(n))).mkString(", ")
 
   def genDecodeJsons = {
     def decodeJsonContextArities(n: Int): String = (1 to n).map(n => "%s: DecodeJson".format(arityChars(n))).mkString(", ")
@@ -234,7 +237,6 @@ object Boilerplate {
   }
 
   def genCodecJsons = {
-    def codecJsonContextArities(n: Int): String = (1 to n).map(n => "%s: EncodeJson: DecodeJson".format(arityChars(n))).mkString(", ")
 
     def content = {
 
@@ -296,6 +298,42 @@ object Boilerplate {
          |  import EncodeJson._
          |%s
          |}
+         |""".format(content).stripMargin
+  }
+
+  def genDerivingCodecJsons = {
+    def content = {
+      val derivingCodecs = aritiesExceptOne.map{arity =>
+        """|
+           |abstract class DerivingCodecJson%s[%s, X](%s) {
+           |  implicit val codecInstance: CodecJson[X] =
+           |    casecodec%s(apply, unapply)(%s)
+           |
+           |  def apply(%s): X
+           |
+           |  def unapply(x: X): Option[(%s)]
+           |
+           |}
+           |""".format(
+                  arity,
+                  codecJsonContextArities(arity),
+                  jsonStringParams(arity),
+                  arity,
+                  jsonStringParamNames(arity),
+                  (1 to arity).map(n => "%s: %s".format(arityChars(n).toLowerCase, arityChars(n))).mkString(", "),
+                  functionTypeParameters(arity)
+                ).stripMargin
+      }
+
+      (derivingCodecs).mkString
+    }
+    header +
+      """|
+         |import Json._
+         |import CodecJson._
+         |
+         |%s
+         |
          |""".format(content).stripMargin
   }
 
