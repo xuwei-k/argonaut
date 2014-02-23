@@ -2,10 +2,8 @@ package argonaut.example
 
 import argonaut._, Argonaut._
 import scalaz._, Scalaz._
-import org.specs2._
-import org.specs2.specification._
 
-object JsonExample extends Specification {
+object JsonExample extends SpecLite {
   val json =
     Json(
       "name" := "fred",
@@ -26,11 +24,12 @@ object JsonExample extends Specification {
   implicit val CodecCoin = casecodec1(Coin.apply, Coin.unapply)("value")
   implicit val CodecPerson = casecodec3(Person.apply, Person.unapply)("name", "age", "wallet")
 
-  def is = "JsonExample" ^
+  "JsonExample" should {
     "Can decode hand crafted object" ! {
-      json.as[Person].toOption must beSome(value)
-    } ^
-    "Can encode to match hand crafted object" ! {
-      value.asJson must_== json
+      json.as[Person].toOption must_== Some(value)
     }
+    "Can encode to match hand crafted object" ! {
+      value.asJson must_=== json
+    }
+  }
 }
