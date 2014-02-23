@@ -1,42 +1,40 @@
 package argonaut
 
 import Data._
-import JsonIdentity._
-import scalaz._, Scalaz._
+import scalaz._, std.AllInstances._
 import org.scalacheck._, Arbitrary._, Prop._
-import org.specs2._, org.specs2.specification._
-import org.specs2.matcher._
 
-object CodecSpecification extends Specification with ScalaCheck {
+object CodecSpecification extends SpecLite {
   def encodedecode[A: EncodeJson: DecodeJson : Arbitrary : Equal] =
     forAll(CodecJson.derived[A].codecLaw.encodedecode _)
 
-  def is = "Codec" ^
-    "Unit encode/decode" ! encodedecode[Unit] ^
-    "Json encode/decode" ! encodedecode[Json] ^
-    "List[String] encode/decode" ! encodedecode[List[String]] ^
-    "List[Int] encode/decode" ! encodedecode[List[Int]] ^
-    "List[Long] encode/decode" ! encodedecode[List[Long]] ^
-    "List[Double] encode/decode" ! encodedecode[List[Double]] ^
-    "Vector[String] encode/decode" ! encodedecode[Vector[String]] ^
-    "Stream[String] encode/decode" ! encodedecode[Stream[String]] ^
-    "String encode/decode" ! encodedecode[String] ^
-    "Double encode/decode" ! encodedecode[Double] ^
-    "Float encode/decode" ! encodedecode[Float] ^
-    "Int encode/decode" ! encodedecode[Int] ^
-    "Long encode/decode" ! encodedecode[Long] ^
-    "Boolean encode/decode" ! encodedecode[Boolean] ^
-    "Char encode/decode" ! encodedecode[Char] ^
-    "Option[String] encode/decode" ! encodedecode[Option[String]] ^
-    "Either[String, Int] encode/decode" ! encodedecode[Either[String, Int]] ^
-    "String \\/ Int encode/decode" ! encodedecode[String \/ Int] ^
-    "Map[String, Int] encode/decode" ! encodedecode[Map[String, Int]] ^
-    "Set[String] encode/decode" ! encodedecode[Set[String]] ^
-    "Tuple2[String, Int] encode/decode" ! encodedecode[Tuple2[String, Int]] ^
-    "Tuple3[String, Int, Boolean] encode/decode" ! encodedecode[Tuple3[String, Int, Boolean]] ^
-    "Tuple4[String, Int, Boolean, Long] encode/decode" ! encodedecode[Tuple4[String, Int, Boolean, Long]] ^
-    "22 field class with codec" ! { import CodecInstances._; encodedecode[TestClass] } ^
-    "22 field class with codec derived" ! { import EncodeDecodeInstances._; encodedecode[TestClass] } ^ end
+  "Codec" should {
+    "Unit encode/decode" ! encodedecode[Unit]
+    "Json encode/decode" ! encodedecode[Json]
+    "List[String] encode/decode" ! encodedecode[List[String]]
+    "List[Int] encode/decode" ! encodedecode[List[Int]]
+    "List[Long] encode/decode" ! encodedecode[List[Long]]
+    "List[Double] encode/decode" ! encodedecode[List[Double]]
+    "Vector[String] encode/decode" ! encodedecode[Vector[String]]
+    "Stream[String] encode/decode" ! encodedecode[Stream[String]]
+    "String encode/decode" ! encodedecode[String]
+    "Double encode/decode" ! encodedecode[Double]
+    "Float encode/decode" ! encodedecode[Float]
+    "Int encode/decode" ! encodedecode[Int]
+    "Long encode/decode" ! encodedecode[Long]
+    "Boolean encode/decode" ! encodedecode[Boolean]
+    "Char encode/decode" ! encodedecode[Char]
+    "Option[String] encode/decode" ! encodedecode[Option[String]]
+    "Either[String, Int] encode/decode" ! encodedecode[Either[String, Int]]
+    "String \\/ Int encode/decode" ! encodedecode[String \/ Int]
+    "Map[String, Int] encode/decode" ! encodedecode[Map[String, Int]]
+    "Set[String] encode/decode" ! encodedecode[Set[String]]
+    "Tuple2[String, Int] encode/decode" ! encodedecode[Tuple2[String, Int]]
+    "Tuple3[String, Int, Boolean] encode/decode" ! encodedecode[Tuple3[String, Int, Boolean]]
+    "Tuple4[String, Int, Boolean, Long] encode/decode" ! encodedecode[Tuple4[String, Int, Boolean, Long]]
+    "22 field class with codec" ! { import CodecInstances._; encodedecode[TestClass] }
+    "22 field class with codec derived" ! { import EncodeDecodeInstances._; encodedecode[TestClass] }
+  }
 
 
   case class TestClass(a: Int, b: Int, c: String, d: Int, e: Int, f: String, g: Int, h: Int, i: String, j: Int, k: Int, l: String, m: Int, n: Int, o: String, p: Int, q: Int, r: String, s: Int, t: Int, u: String, v: Boolean)
