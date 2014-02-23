@@ -2,13 +2,11 @@ package argonaut
 
 import Data._
 import JsonIdentity._
-import scalaz._, Scalaz._
 import scalaz.scalacheck.ScalaCheckBinding._
+import scalaz._, std.AllInstances._
 import org.scalacheck._, Arbitrary._, Prop._
-import org.specs2._, org.specs2.specification._
-import org.specs2.matcher._
 
-object CodecSpecification extends Specification with ScalaCheck {
+object CodecSpecification extends SpecLite {
   def encodedecode[A: EncodeJson: DecodeJson : Arbitrary : Equal] =
     forAll(CodecJson.derived[A].codecLaw.encodedecode _)
 
@@ -44,7 +42,6 @@ object CodecSpecification extends Specification with ScalaCheck {
     "Tuple4[String, Int, Boolean, Long] encode/decode" ! encodedecode[Tuple4[String, Int, Boolean, Long]] ^
     "22 field class with codec" ! { import CodecInstances._; encodedecode[TestClass] } ^
     "22 field class with codec derived" ! { import EncodeDecodeInstances._; encodedecode[TestClass] } ^ end
-
 
   implicit val jDoubleArbitrary: Arbitrary[java.lang.Double] =
     implicitly[Arbitrary[Double]].map(a => a)

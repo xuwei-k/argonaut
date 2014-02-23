@@ -2,10 +2,8 @@ package argonaut.example
 
 import argonaut._, Argonaut._
 import scalaz._, Scalaz._
-import org.specs2._
-import org.specs2.specification._
 
-object CursorExample extends Specification {
+object CursorExample extends SpecLite {
   val json =
       """
         {
@@ -32,25 +30,26 @@ object CursorExample extends Specification {
         }
       """
 
-  def is = "CursorExample" ^
+  "CursorExample" should {
     """Replace '["cat", "lol"]' with 'false'""" ! {
-      json.parseOption flatMap (k =>
+      json.parseOption.flatMap (k =>
         +k --\ "values" flatMap (_.downArray) map (_ := jBool(false)) map (-_)
-      ) must beSome
-    } ^
-    "Visit the 'values' array" ! {
-      json.parseOption flatMap (k =>
-        +k --\ "values" flatMap (_.downArray) map (-_)
-      ) must beSome
-    } ^
-    """Delete the element '"dog"' from the 'values' array.""" ! {
-      json.parseOption flatMap (k =>
-        +k --\ "values" flatMap (_.downArray) flatMap (_.right) flatMap (!_) map (-_)
-      ) must beSome
-    } ^
-    """Replace '["cat", "lol"]' with 'false' and '"rabbit"' with 'true'""" ! {
-      json.parseOption flatMap (k =>
-        +k --\ "values" flatMap (_.downArray) map (_ := jBool(false)) flatMap (_.right) flatMap (_.right) map (_ := jBool(true)) map (-_)
-      ) must beSome
+      ).isDefined must_=== true
     }
+    "Visit the 'values' array" ! {
+      json.parseOption.flatMap (k =>
+        +k --\ "values" flatMap (_.downArray) map (-_)
+      ).isDefined must_=== true
+    }
+    """Delete the element '"dog"' from the 'values' array.""" ! {
+      json.parseOption.flatMap (k =>
+        +k --\ "values" flatMap (_.downArray) flatMap (_.right) flatMap (!_) map (-_)
+      ).isDefined must_=== true
+    }
+    """Replace '["cat", "lol"]' with 'false' and '"rabbit"' with 'true'""" ! {
+      json.parseOption.flatMap (k =>
+        +k --\ "values" flatMap (_.downArray) map (_ := jBool(false)) flatMap (_.right) flatMap (_.right) map (_ := jBool(true)) map (-_)
+      ).isDefined must_=== true
+    }
+  }
 }

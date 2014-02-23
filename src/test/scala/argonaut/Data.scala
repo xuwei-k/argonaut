@@ -1,6 +1,6 @@
 package argonaut
 
-import scalaz._, Scalaz._
+import scalaz._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen.{frequency, choose, listOfN, value, oneOf}
 import Json._

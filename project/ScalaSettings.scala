@@ -8,9 +8,10 @@ object ScalaSettings {
   val on210or211 = Seq("-Yinline-warnings", "-feature", "-language:implicitConversions", "-language:higherKinds", "-language:postfixOps")
 
   lazy val all: Seq[Sett] = Seq(
-    scalaVersion := "2.10.3"
-  , crossScalaVersions := Seq("2.10.3", "2.11.0-RC1")
+    scalaVersion := "2.11.1"
+  , crossScalaVersions := "2.10.4" :: scalaVersion.value :: Nil
   , fork in test := true
+  , scalacOptions += "-Xlint"
   , scalacOptions <++= onVersionTask(
       all = Seq("-deprecation", "-unchecked", "-optimise")
     , on210 = on210or211

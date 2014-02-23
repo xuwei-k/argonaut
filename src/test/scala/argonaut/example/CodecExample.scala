@@ -2,21 +2,23 @@ package argonaut.example
 
 import argonaut._, Argonaut._
 import scalaz._, Scalaz._
-import org.specs2._
-import org.specs2.specification._
 
-object CodecExample extends Specification {
+object CodecExample extends SpecLite {
   case class Person(name: String, age: Int)
 
   val fred = Person("Fred", 40)
 
+  implicit val personEqual: Equal[Person] = Equal.equalA
+  implicit val personShow: Show[Person] = Show.showA
+
   def encodeDecode(json: String)(implicit encode: EncodeJson[Person], decode: DecodeJson[Person]) = {
     val person: Option[Person] = json.decodeOption[Person]
     val encodedJson: Option[String] = person.map(_.jencode.nospaces)
-    (person must be_==(fred.some)) and (encodedJson must be_==(json.some))
+    person must_=== fred.some
+    encodedJson must_=== json.some
   }
 
-  def is = "CodecExample" ^
+  "CodecExample" should {
     "Array codec" ! {
       implicit val DecodePerson: DecodeJson[Person] =
         jdecode2(Person(_: String, _: Int))
@@ -25,7 +27,7 @@ object CodecExample extends Specification {
         jencode2((p: Person) => (p.name, p.age))
 
       encodeDecode("""["Fred",40]""")
-    } ^
+    }
     "Object codec" ! {
       implicit val DecodePerson: DecodeJson[Person] =
         jdecode2L(Person(_: String, _: Int))("name", "age")
@@ -35,4 +37,5 @@ object CodecExample extends Specification {
 
       encodeDecode("""{"name":"Fred","age":40}""")
     }
+  }
 }
