@@ -13,7 +13,7 @@ object build extends Build {
       organization := "io.argonaut"
   )
 
-  val scalazVersion              = "7.1.0-M6"
+  val scalazVersion              = "7.1.0-M7"
   val scalaz                     = "org.scalaz"                   %% "scalaz-core"               % scalazVersion
   val scalazScalaCheckBinding    = "org.scalaz"                   %% "scalaz-scalacheck-binding" % scalazVersion            % "test"
   val specs2                     = "org.specs2"                   %% "specs2"                    % "2.3.10-scalaz-7.1.0-M6" % "test"
@@ -26,13 +26,15 @@ object build extends Build {
   , base = file(".")
   , settings = base ++ ReplSettings.all ++ releaseSettings ++ PublishSettings.all ++ InfoSettings.all ++ Seq[Sett](
       name := "argonaut"
+    , scalaVersion := "2.11.0"
+    , scalaBinaryVersion := "2.11"
     , (sourceGenerators in Compile) <+= (sourceManaged in Compile) map Boilerplate.gen
     , resolvers ++= Seq(
         "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
       , "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
       )
     , libraryDependencies <++= onVersion(
-        all = Seq(scalaz, scalazScalaCheckBinding, specs2)
+        all = Seq(scalaz, scalazScalaCheckBinding)
       )
      /* no mima until 6.1.0 release */
     , previousArtifact := None
