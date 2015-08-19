@@ -47,6 +47,20 @@ object EncodeJson extends EncodeJsons {
   def derive[A]: EncodeJson[A] = macro internal.Macros.materializeEncodeImpl[A]
 
   def of[A: EncodeJson] = implicitly[EncodeJson[A]]
+
+  implicit def genericIMapEncodeJson[A, B](implicit A: EncodeJsonKey[A], B: EncodeJson[B]): EncodeJson[A ==>> B] =
+    EncodeJson(x => jObjectAssocList(
+      x.foldrWithKey(Nil: List[(String, Json)])(
+        (k, v, list) => (A.toJsonKey(k), B(v)) :: list
+      )
+    ))
+
+  implicit def genericMapLikeEncodeJson[M[K, +V] <: Map[K, V], K, V](implicit K: EncodeJsonKey[K], e: EncodeJson[V]): EncodeJson[M[K, V]] =
+    EncodeJson(x => jObjectAssocList(
+      x.toList map {
+        case (k, v) => (K.toJsonKey(k), e(v))
+      }
+    ))
 }
 
 trait EncodeJsons extends GeneratedEncodeJsons {
@@ -147,12 +161,8 @@ trait EncodeJsons extends GeneratedEncodeJsons {
       e => jSingleObject("Failure", ea(e)), a => jSingleObject("Success", eb(a))
     ))
 
-  implicit def MapLikeEncodeJson[M[K, +V] <: Map[K, V], V](implicit e: EncodeJson[V]): EncodeJson[M[String, V]] =
-    EncodeJson(x => jObjectAssocList(
-      x.toList map {
-        case (k, v) => (k, e(v))
-      }
-    ))
+  def MapLikeEncodeJson[M[K, +V] <: Map[K, V], V](implicit e: EncodeJson[V]): EncodeJson[M[String, V]] =
+    EncodeJson.genericMapLikeEncodeJson[M, String, V]
 
   implicit def IListEncodeJson[A: EncodeJson]: EncodeJson[IList[A]] =
     fromFoldable[IList, A]
@@ -169,12 +179,8 @@ trait EncodeJsons extends GeneratedEncodeJsons {
   implicit def NonEmptyListEncodeJson[A: EncodeJson]: EncodeJson[NonEmptyList[A]] =
     fromFoldable[NonEmptyList, A]
 
-  implicit def IMapEncodeJson[A](implicit A: EncodeJson[A]): EncodeJson[String ==>> A] =
-    EncodeJson(x => jObjectAssocList(
-      x.foldrWithKey(Nil: List[(String, Json)])(
-        (k, v, list) => (k, A(v)) :: list
-      )
-    ))
+  def IMapEncodeJson[A](implicit A: EncodeJson[A]): EncodeJson[String ==>> A] =
+    EncodeJson.genericIMapEncodeJson[String, A]
 
   implicit val EncodeJsonContra: Contravariant[EncodeJson] = new Contravariant[EncodeJson] {
     def contramap[A, B](r: EncodeJson[A])(f: B => A) = r contramap f

@@ -35,6 +35,16 @@ EncodeJson Witness Compilation
     EncodeJson.of[(String, Int, Boolean, Long, Double)]
   }
 
+  object encodeJsonKey {
+    final case class Foo(value: String)
+    object Foo {
+      implicit val instance: EncodeJsonKey[Foo] =
+        EncodeJsonKey.from(_.value)
+    }
+
+    EncodeJson.of[Map[Foo, Int]]
+  }
+
   object derived {
     import TestTypes._
 
