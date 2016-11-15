@@ -86,15 +86,22 @@ case class PrettyParams(
     }
   }
 
-  private[this] def vectorMemo(f: Int => String): Int => String = {
-    var vector: Vector[String] = Vector.empty
+  private[this] def memo(f: Int => String): Int => String = {
+    val maxMemoSize = 8
+    val array = new Array[String](maxMemoSize + 1)
+    var i = 0
+    while(i <= maxMemoSize) {
+      array(i) = f(i)
+      i += 1
+    }
 
     (i: Int) => {
-      if (i >= 0) {
-        if (vector.size <= i) {
-          vector = vector ++ Vector.tabulate(i + 1 - vector.size)(n => f(n + vector.size))
+      if (0 <= i) {
+        if(i <= maxMemoSize) {
+          array(i)
+        } else {
+          f(i)
         }
-        vector.lift(i).getOrElse(f(i))
       } else {
         ""
       }
@@ -102,14 +109,14 @@ case class PrettyParams(
   }
 
   // TODO: Vector based memoisation.
-  private[this] final val lbraceMemo = vectorMemo{depth: Int => "%s%s%s".format(_lbraceLeft(depth), openBraceText, _lbraceRight(depth + 1))}
-  private[this] final val rbraceMemo = vectorMemo{depth: Int => "%s%s%s".format(_rbraceLeft(depth), closeBraceText, _rbraceRight(depth + 1))}
-  private[this] final val lbracketMemo = vectorMemo{depth: Int => "%s%s%s".format(_lbracketLeft(depth), openArrayText, _lbracketRight(depth + 1))}
-  private[this] final val rbracketMemo = vectorMemo{depth: Int => "%s%s%s".format(_rbracketLeft(depth), closeArrayText, _rbracketRight(depth))}
-  private[this] final val lrbracketsEmptyMemo = vectorMemo{depth: Int => "%s%s%s".format(openArrayText, _lrbracketsEmpty(depth), closeArrayText)}
-  private[this] final val arrayCommaMemo = vectorMemo{depth: Int => "%s%s%s".format(_arrayCommaLeft(depth + 1), commaText, _arrayCommaRight(depth + 1))}
-  private[this] final val objectCommaMemo = vectorMemo{depth: Int => "%s%s%s".format(_objectCommaLeft(depth + 1), commaText, _objectCommaRight(depth + 1))}
-  private[this] final val colonMemo = vectorMemo{depth: Int => "%s%s%s".format(_colonLeft(depth + 1), colonText, _colonRight(depth + 1))}
+  private[this] final val lbraceMemo = memo{depth: Int => "%s%s%s".format(_lbraceLeft(depth), openBraceText, _lbraceRight(depth + 1))}
+  private[this] final val rbraceMemo = memo{depth: Int => "%s%s%s".format(_rbraceLeft(depth), closeBraceText, _rbraceRight(depth + 1))}
+  private[this] final val lbracketMemo = memo{depth: Int => "%s%s%s".format(_lbracketLeft(depth), openArrayText, _lbracketRight(depth + 1))}
+  private[this] final val rbracketMemo = memo{depth: Int => "%s%s%s".format(_rbracketLeft(depth), closeArrayText, _rbracketRight(depth))}
+  private[this] final val lrbracketsEmptyMemo = memo{depth: Int => "%s%s%s".format(openArrayText, _lrbracketsEmpty(depth), closeArrayText)}
+  private[this] final val arrayCommaMemo = memo{depth: Int => "%s%s%s".format(_arrayCommaLeft(depth + 1), commaText, _arrayCommaRight(depth + 1))}
+  private[this] final val objectCommaMemo = memo{depth: Int => "%s%s%s".format(_objectCommaLeft(depth + 1), commaText, _objectCommaRight(depth + 1))}
+  private[this] final val colonMemo = memo{depth: Int => "%s%s%s".format(_colonLeft(depth + 1), colonText, _colonRight(depth + 1))}
 
   /**
    * Returns a string representation of a pretty-printed JSON value.
