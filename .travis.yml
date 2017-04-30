@@ -58,4 +58,4 @@ matrix:
       - make testinstall prefix=/usr
       - popd
       script:
-      - sbt ++$TRAVIS_SCALA_VERSION nativeTest/run
+      - sbt ++$TRAVIS_SCALA_VERSION nativeTestJVM/run nativeTestNative/run

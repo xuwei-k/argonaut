@@ -121,16 +121,19 @@ lazy val noPublish = Seq(
   publish := {}
 )
 
-val nativeTest = Project(
+val nativeTest = argonautCrossProject(
   nativeTestId
-, file("native-test")
-).enablePlugins(ScalaNativePlugin).settings(
+, Seq(JVMPlatform, NativePlatform, JSPlatform)
+).settings(
     base
   , noPublish
   , nativeSettings
 ).dependsOn(
-  nativeProjects.map(p => p: ClasspathDep[ProjectReference]) : _*
+  argonautScalaz
 )
+
+val nativeTestJVM = nativeTest.jvm
+val nativeTestNative = nativeTest.native
 
 val nativeParent = Project(
   nativeParentId
