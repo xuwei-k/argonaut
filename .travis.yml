@@ -1,42 +1,7 @@
 sudo: false
 language: scala
-notifications:
-  irc:
-    channels:
-      - "irc.freenode.org#argonaut"
-    skip_join: true
-    template:
-      - "\x0313argonaut\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
 matrix:
   include:
-    - jdk: openjdk7
-      scala: 2.10.6
-      script: sbt ++${TRAVIS_SCALA_VERSION} test
-    - jdk: oraclejdk8
-      scala: 2.10.6
-      script: sbt ++${TRAVIS_SCALA_VERSION} test
-
-    - jdk: openjdk7
-      scala: 2.11.11
-      script: sbt ++${TRAVIS_SCALA_VERSION} test:compile jvmParent/test # scala-js test unstable with java7
-    - jdk: oraclejdk8
-      scala: 2.11.11
-      script: sbt ++${TRAVIS_SCALA_VERSION} test:compile jvmParent/test "project jsParent" testSequential
-
-    - jdk: oraclejdk8
+    - jdk: oraclejdk9
       scala: 2.12.4
-      script: sbt ++${TRAVIS_SCALA_VERSION} test:compile jvmParent/test "project jsParent" testSequential
-
-    - jdk: oraclejdk8
-      scala: 2.13.0-M2
-      script: sbt ++${TRAVIS_SCALA_VERSION} argonautJVM/test argonaut-scalazJVM/test
-
-    - scala: 2.11.11
-      jdk: oraclejdk8
-      sudo: required
-      before_install:
-      - curl https://raw.githubusercontent.com/scala-native/scala-native/21539aa97947f7/bin/travis_setup.sh | bash -
-      script:
-      # TODO "sbt nativeTest/run" invoke jvm main !?
-      - ./sbt ++$TRAVIS_SCALA_VERSION nativeTest/nativeLink
-      - ./native-test/target/scala-2.11/nativetest-out
+      script: sbt -Dsbt.scala.version=2.10.7 ++${TRAVIS_SCALA_VERSION} test:compile jvmParent/test "project jsParent" testSequential
