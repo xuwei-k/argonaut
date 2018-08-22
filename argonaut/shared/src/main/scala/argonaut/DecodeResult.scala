@@ -38,7 +38,7 @@ case class DecodeResult[A](result: Either[(String, CursorHistory), A]) {
     result.right.toOption
 
   def failure: Option[(String, CursorHistory)] =
-    result.left.toOption
+    result.swap.toOption
 
   def option: DecodeResult[Option[A]] =
     result match {

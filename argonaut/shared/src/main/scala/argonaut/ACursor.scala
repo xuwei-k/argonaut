@@ -14,7 +14,7 @@ case class ACursor(either: Either[HCursor, HCursor]) {
 
   /** Get the failed hcursor if we are in an failed state. */
   def failure: Option[HCursor] =
-    either.left.toOption
+    either.swap.toOption
 
   /**
    * Attempts to decode this cursor focus value to another data type.
