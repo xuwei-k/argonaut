@@ -25,10 +25,17 @@ object build {
       case Some((2, v)) if v <= 12 =>
         "1.6.0-M1"
       case _ =>
-        "1.6.0"
+        "1.6.3"
     }
   )
-  val catsVersion                = "2.0.0"
+  val catsVersion                = Def.setting(
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, v)) if v <= 11 =>
+        "2.0.0"
+      case _ =>
+        "2.1.1"
+    }
+  )
 
   val scalacheckVersion          = settingKey[String]("")
   val specs2Version              = settingKey[String]("")
@@ -69,12 +76,12 @@ object build {
     , releaseTagName := tagName.value
     , autoScalaLibrary := false
     , libraryDependencies ++= reflect(scalaOrganization.value, scalaVersion.value)
-    , specs2Version := "4.8.3"
+    , specs2Version := "4.9.4"
     , ThisBuild / mimaReportSignatureProblems := true
     , mimaPreviousArtifacts := {
         CrossVersion.partialVersion(scalaVersion.value) match {
           case Some((2, _)) =>
-            Set("6.2.3").map(
+            Set("6.2.4").map(
               organization.value %% name.value % _
             )
           case _ =>
