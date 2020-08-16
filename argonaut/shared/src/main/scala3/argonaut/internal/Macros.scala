@@ -3,7 +3,6 @@ package internal
 
 import scala.quoted._
 import scala.quoted.util._
-
 import scala.deriving._
 import scala.collection.mutable.WrappedArray
 import scala.compiletime.{constValue, erasedValue, error, summonFrom, summonInline}
@@ -24,7 +23,7 @@ object Macros {
 
   inline final def summonEncoder[A]: EncodeJson[A] = summonFrom {
     case encodeA: EncodeJson[A] => encodeA
-    case _: Mirror.Of[A] => EncodeJson.derive[A]
+    case _: Mirror.ProductOf[A] => EncoderDerivation.derived[A]
   }
 
   inline final def summonDecoder[A]: DecodeJson[A] = summonFrom {
@@ -33,26 +32,28 @@ object Macros {
   }
 
   inline final def summonLabelsRec[T <: Tuple]: List[String] = inline erasedValue[T] match {
-    case _: Unit => Nil
+    case _: EmptyTuple.type => Nil
     case _: (t *: ts) => constValue[t].asInstanceOf[String] :: summonLabelsRec[ts]
   }
 
   inline final def summonDecodersRec[T <: Tuple]: List[DecodeJson[_]] =
     inline erasedValue[T] match {
-      case _: Unit => Nil
+      case _: EmptyTuple.type => Nil
       case _: (t *: ts) => summonDecoder[t] :: summonDecodersRec[ts]
     }
 
   inline final def summonEncodersRec[T <: Tuple]: List[EncodeJson[_]] =
     inline erasedValue[T] match {
-      case _: Unit => Nil
+      case _: EmptyTuple.type => Nil
       case _: (t *: ts) => summonEncoder[t] :: summonEncodersRec[ts]
     }
 }
 
 trait EncoderDerivation {
   inline final def derived[A](using inline A: Mirror.ProductOf[A]): EncodeJson[A] =
-    new EncodeJson[A] with DerivedEncoder[A] {
+    new EncodeJson[A] with DerivedEncoder[A] with DerivedInstance[A](
+      Macros.summonLabels[A.MirroredElemLabels]
+    ) {
       override val elemEncoders: Array[EncodeJson[_]] =
         Macros.summonEncoders[A.MirroredElemTypes]
    
@@ -64,13 +65,11 @@ trait EncoderDerivation {
     }
 }
 
+object EncoderDerivation extends EncoderDerivation
 
 trait DerivedInstance[A](
-  final val name: String,
-  protected[this] final val elemLabels: Array[String]
-) {
-  final def elemCount: Int = elemLabels.length
-}
+  val elemLabels: Array[String]
+)
 
 trait DerivedEncoder[A] extends DerivedInstance[A] with EncodeJson[A] {
   protected[this] def elemEncoders: Array[EncodeJson[_]]
