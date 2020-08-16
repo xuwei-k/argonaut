@@ -15,8 +15,6 @@ inline def summonAll[T <: Tuple]: List[EncodeJson[_]] = {
 }
 
 object Macros {
-  inline final def summonLabels[T <: Tuple]: Array[String] = summonLabelsRec[T].toArray
-
   inline final def summonDecoders[T <: Tuple]: Array[DecodeJson[_]] = summonDecodersRec[T].toArray
 
   inline final def summonEncoders[T <: Tuple]: Array[EncodeJson[_]] = summonEncodersRec[T].toArray
@@ -29,11 +27,6 @@ object Macros {
   inline final def summonDecoder[A]: DecodeJson[A] = summonFrom {
     case decodeA: DecodeJson[A] => decodeA
     case _: Mirror.Of[A] => DecodeJson.derive[A]
-  }
-
-  inline final def summonLabelsRec[T <: Tuple]: List[String] = inline erasedValue[T] match {
-    case _: EmptyTuple.type => Nil
-    case _: (t *: ts) => constValue[t].asInstanceOf[String] :: summonLabelsRec[ts]
   }
 
   inline final def summonDecodersRec[T <: Tuple]: List[DecodeJson[_]] =
@@ -51,9 +44,7 @@ object Macros {
 
 trait EncoderDerivation {
   inline final def derived[A](using inline A: Mirror.ProductOf[A]): EncodeJson[A] =
-    new EncodeJson[A] with DerivedEncoder[A] with DerivedInstance[A](
-      Macros.summonLabels[A.MirroredElemLabels]
-    ) {
+    new EncodeJson[A] with DerivedEncoder[A] {
       override val elemEncoders: Array[EncodeJson[_]] =
         Macros.summonEncoders[A.MirroredElemTypes]
    
@@ -66,10 +57,6 @@ trait EncoderDerivation {
 }
 
 object EncoderDerivation extends EncoderDerivation
-
-trait DerivedInstance[A](
-  val elemLabels: Array[String]
-)
 
 trait DerivedEncoder[A] extends EncodeJson[A] {
   protected[this] def elemEncoders: Array[EncodeJson[_]]
