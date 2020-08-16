@@ -71,15 +71,15 @@ trait DerivedInstance[A](
   val elemLabels: Array[String]
 )
 
-trait DerivedEncoder[A] extends DerivedInstance[A] with EncodeJson[A] {
+trait DerivedEncoder[A] extends EncodeJson[A] {
   protected[this] def elemEncoders: Array[EncodeJson[_]]
-
-  final def encodeWith(index: Int)(value: Any): (String, Json) =
-    (elemLabels(index), elemEncoders(index).asInstanceOf[EncodeJson[Any]].apply(value))
 
   final def encodedIterable(value: Product): Iterable[(String, Json)] =
     new Iterable[(String, Json)] {
-      def iterator: Iterator[(String, Json)] = new Iterator[(String, Json)] {
+      private[this] def encodeWith(index: Int)(p: Any): (String, Json) =
+        (value.productElementName(index), elemEncoders(index).asInstanceOf[EncodeJson[Any]].apply(p))
+
+      def iterator: Iterator[(String, Json)] = new scala.collection.AbstractIterator[(String, Json)] {
         private[this] val elems: Iterator[Any] = value.productIterator
         private[this] var index: Int = 0
         def hasNext: Boolean = elems.hasNext
