@@ -13,7 +13,7 @@ object ScalaSettings {
   def Scala212 = "2.12.12"
 
   lazy val all: Seq[Sett] = Def.settings(
-    scalaVersion := Scala212
+    scalaVersion := "0.26.0-RC1"
   , commands += Command.command("SetDottyNightlyVersion") {
       s"""++ ${dottyLatestNightlyBuild.get}!""" :: _
     }

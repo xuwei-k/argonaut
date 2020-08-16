@@ -1,6 +1,6 @@
 package argonaut
 
 trait EncodeJsonMacro {
-  // TODO
-  def derive[A]: EncodeJson[A] = ???
+  inline def derive[A]: EncodeJson[A] = 
+    ${ internal.Macros.deriveImpl[A] }
 }
