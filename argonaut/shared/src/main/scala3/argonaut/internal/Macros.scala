@@ -1,7 +1,7 @@
 package argonaut
 package internal
 
-import scala.quoted._
+import scala.collection.{AbstractIterable, AbstractIterator}
 import scala.deriving.{ArrayProduct, Mirror}
 import scala.compiletime.{constValue, erasedValue, summonFrom}
 
@@ -46,15 +46,32 @@ object Macros {
     }
 
   inline final def derivedEncoder[A](using inline A: Mirror.ProductOf[A]): EncodeJson[A] =
-    new EncodeJson[A] with DerivedEncoder[A] {
-      override val elemEncoders: Array[EncodeJson[_]] =
+    new EncodeJson[A] {
+      private[this] val elemEncoders: Array[EncodeJson[_]] =
         Macros.summonEncoders[A.MirroredElemTypes]
    
-      final def encode(a: A): Json = {
+      override final def encode(a: A): Json =
         Json.jObject(
           JsonObject.fromIterable(encodedIterable(a.asInstanceOf[Product]))
         )
-      }
+
+      private[this] final def encodedIterable(value: Product): Iterable[(String, Json)] =
+        new AbstractIterable[(String, Json)] {
+          private[this] def encodeWith(index: Int)(p: Any): (String, Json) =
+            (value.productElementName(index), elemEncoders(index).asInstanceOf[EncodeJson[Any]].apply(p))
+
+          def iterator: Iterator[(String, Json)] =
+            new scala.collection.AbstractIterator[(String, Json)] {
+              private[this] val elems: Iterator[Any] = value.productIterator
+              private[this] var index: Int = 0
+              def hasNext: Boolean = elems.hasNext
+              def next(): (String, Json) = {
+                val field = encodeWith(index)(elems.next())
+                index += 1
+                field
+              }
+            }
+        }
     }
 
   inline final def derivedCodec[A](using inline A: Mirror.ProductOf[A]): CodecJson[A] =
@@ -64,86 +81,53 @@ object Macros {
     )
 
   inline final def derivedDecoder[A](using inline A: Mirror.ProductOf[A]): DecodeJson[A] =
-    new DerivedDecoder[A] {
-      private[this] val elemLabels0 = Macros.summonLabels[A.MirroredElemLabels]
-      override def elemLabels(i: Int): String = elemLabels0(i)
+    new DecodeJson[A] {
+      final def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] =
+        elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(elemLabels(index)))
 
-      override lazy val elemDecoders: Array[DecodeJson[_]] =
+      final def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
+        new Iterator[DecodeResult[AnyRef]] {
+          private[this] var i: Int = 0
+
+          def hasNext: Boolean = i < elemCount
+
+          def next: DecodeResult[AnyRef] = {
+            val result = decodeWith(i)(c)
+            i += 1
+            result
+          }
+        }
+
+      private[this] val elemLabels = Macros.summonLabels[A.MirroredElemLabels]
+
+      private[this] val elemDecoders: Array[DecodeJson[_]] =
         Macros.summonDecoders[A.MirroredElemTypes]
 
+      private[this] val elemCount = elemDecoders.size
+      
       final def decode(c: HCursor): DecodeResult[A] = {
         DecodeResult[A] {
-          if (c.focus.isObject) {
-            val iter = resultIterator(c)
-            val res = new Array[AnyRef](elemCount)
-            var failed: Left[(String, CursorHistory), AnyRef] = null
-            var i: Int = 0
+          val iter = resultIterator(c)
+          val res = new Array[AnyRef](elemCount)
+          var failed: (String, CursorHistory) = null
+          var i: Int = 0
 
-            while (iter.hasNext && (failed eq null)) {
-              iter.next.result match {
-                case Right(value) =>
-                  res(i) = value
-                case l@Left(_) =>
-                  failed = l
-              }
-              i += 1
+          while (iter.hasNext && (failed eq null)) {
+            iter.next.result match {
+              case Right(value) =>
+                res(i) = value
+              case Left(l) =>
+                failed = l
             }
+            i += 1
+          }
 
-            if (failed eq null) {
-              Right(A.fromProduct(new ArrayProduct(res)))
-            } else {
-              failed.map(_.asInstanceOf[A])
-            }
+          if (failed eq null) {
+            Right(A.fromProduct(new ArrayProduct(res)))
           } else {
-            Left(("not object", c.history))
+            Left(failed)
           }
         }
       }
     }
 }
-
-trait DerivedEncoder[A] extends EncodeJson[A] {
-  protected[this] def elemEncoders: Array[EncodeJson[_]]
-
-  final def encodedIterable(value: Product): Iterable[(String, Json)] =
-    new Iterable[(String, Json)] {
-      private[this] def encodeWith(index: Int)(p: Any): (String, Json) =
-        (value.productElementName(index), elemEncoders(index).asInstanceOf[EncodeJson[Any]].apply(p))
-
-      def iterator: Iterator[(String, Json)] = new scala.collection.AbstractIterator[(String, Json)] {
-        private[this] val elems: Iterator[Any] = value.productIterator
-        private[this] var index: Int = 0
-        def hasNext: Boolean = elems.hasNext
-        def next(): (String, Json) = {
-          val field = encodeWith(index)(elems.next())
-          index += 1
-          field
-        }
-      }
-    }
-}
-
-trait DerivedDecoder[A] extends DecodeJson[A] {
-  protected[this] def elemDecoders: Array[DecodeJson[_]]
-  val elemCount = elemDecoders.size
-
-  def elemLabels(i: Int): String
-
-  final def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] =
-    elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(elemLabels(index)))
-
-  final def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
-    new Iterator[DecodeResult[AnyRef]] {
-      private[this] var i: Int = 0
-
-      def hasNext: Boolean = i < elemCount
-
-      def next: DecodeResult[AnyRef] = {
-        val result = decodeWith(i)(c)
-        i += 1
-        result
-      }
-    }
-
-}
-

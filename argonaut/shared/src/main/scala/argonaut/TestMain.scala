@@ -14,7 +14,6 @@ object TestMain {
   }
     
   def test(d: DecodeJson[Foo], e: EncodeJson[Foo]) = {
-      
     val foo = Foo(3, "a", true)
     val json = e.apply(foo)
     println(json)
