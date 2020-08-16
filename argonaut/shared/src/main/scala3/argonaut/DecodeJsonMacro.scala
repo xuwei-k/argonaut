@@ -1,6 +1,6 @@
 package argonaut
 
 trait DecodeJsonMacro {
-  // TODO
-  def derive[A]: DecodeJson[A] = ???
+  inline def derive[A]: DecodeJson[A] =
+    internal.Macros.summonDecoder[A]
 }

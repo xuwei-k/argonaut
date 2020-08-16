@@ -1,6 +1,6 @@
 package argonaut
 
 trait CodecJsonMacro {
-  // TODO
-  def derive[A]: CodecJson[A] = ???
+  inline def derive[A]: CodecJson[A] =
+    internal.Macros.summonCodec[A]
 }

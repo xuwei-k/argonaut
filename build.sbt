@@ -2,7 +2,7 @@ import build._
 
 val argonaut = argonautCrossProject(
     "argonaut"
-  , Seq(JVMPlatform, JSPlatform)
+  , Seq(JVMPlatform)
 ).settings(
   InfoSettings.all ++ Seq[Sett](
     name := "argonaut"
@@ -12,12 +12,11 @@ val argonaut = argonautCrossProject(
 )
 
 val argonautJVM = argonaut.jvm
-val argonautJS  = argonaut.js
 
 
 val argonautScalaz = argonautCrossProject(
     "argonaut-scalaz"
-  , Seq(JVMPlatform, JSPlatform)
+  , Seq(JVMPlatform)
 ).settings(
   Seq(
     name := "argonaut-scalaz"
@@ -25,18 +24,17 @@ val argonautScalaz = argonautCrossProject(
       "org.scalaz"                   %%% "scalaz-core"               % scalazVersion
     )
   )
-).platformsSettings(JVMPlatform, JSPlatform)(
+).platformsSettings(JVMPlatform)(
   libraryDependencies += "org.scalaz" %%% "scalaz-scalacheck-binding" % scalazVersion % "test",
   libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value))
 ).dependsOn(argonaut % "compile->compile;test->test")
 
 val argonautScalazJVM = argonautScalaz.jvm
-val argonautScalazJS  = argonautScalaz.js
 
 
 val argonautMonocle = argonautCrossProject(
     "argonaut-monocle"
-  , Seq(JVMPlatform, JSPlatform)
+  , Seq(JVMPlatform)
 ).settings(
   Seq[Sett](
     name := "argonaut-monocle"
@@ -50,12 +48,11 @@ val argonautMonocle = argonautCrossProject(
 ).dependsOn(argonaut % "compile->compile;test->test", argonautScalaz % "compile->compile;test->test")
 
 val argonautMonocleJVM = argonautMonocle.jvm
-val argonautMonocleJS  = argonautMonocle.js
 
 
 val argonautCats = argonautCrossProject(
     "argonaut-cats"
-  , Seq(JVMPlatform, JSPlatform)
+  , Seq(JVMPlatform)
 ).settings(
   Seq(
     name := "argonaut-cats"
@@ -69,7 +66,6 @@ val argonautCats = argonautCrossProject(
 ).dependsOn(argonaut % "compile->compile;test->test")
 
 val argonautCatsJVM = argonautCats.jvm
-val argonautCatsJS  = argonautCats.js
 
 
 val argonautJawn = argonautCrossProject(
@@ -105,10 +101,6 @@ val argonautBenchmark = Project(
 ).dependsOn(argonautJVM)
 
 
-val jsProjects = Seq(
-  argonautJS, argonautScalazJS, argonautMonocleJS, argonautCatsJS
-)
-
 val jvmProjects = Seq(
   argonautJVM, argonautScalazJVM, argonautMonocleJVM, argonautCatsJVM, argonautJawnJVM, argonautBenchmark
 )
@@ -129,18 +121,6 @@ val jvmParent = project
     jvmProjects.map(p => p: ProjectReference) : _*
   )
 
-val jsParent = project
-  .settings(
-    base
-  , noPublish
-  , commands += Command.command("testSequential"){
-      // avoid "org.scalajs.jsenv.ComJSEnv$ComClosedException: Node.js isn't connected" error in travis-ci
-      jsProjects.map(_.id + "/test").sorted.toList ::: _
-    }
-  ).aggregate(
-    jsProjects.map(p => p: ProjectReference) : _*
-  )
-
 val argonautParent = Project(
   id = "argonaut-parent"
 , base = file(".")
@@ -153,5 +133,5 @@ val argonautParent = Project(
   , name := "argonaut-parent"
   , fork in run := true
 ).aggregate(
-  (jsProjects ++ jvmProjects).map(p => p: ProjectReference) : _*
+  (jvmProjects).map(p => p: ProjectReference) : _*
 )
