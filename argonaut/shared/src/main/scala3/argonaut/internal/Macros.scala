@@ -32,13 +32,13 @@ object Macros {
   }
 
   inline final def summonLabelsRec[T <: Tuple]: List[String] = inline erasedValue[T] match {
-    case _: EmptyTuple.type => Nil
+    case _: EmptyTuple => Nil
     case _: (t *: ts) => constValue[t].asInstanceOf[String] :: summonLabelsRec[ts]
   }
 
   inline final def summonDecodersRec[T <: Tuple]: List[DecodeJson[_]] =
     inline erasedValue[T] match {
-      case _: EmptyTuple.type => Nil
+      case _: EmptyTuple => Nil
       case _: (t *: ts) => summonDecoder[t] :: summonDecodersRec[ts]
     }
 
@@ -75,34 +75,33 @@ trait DecoderDerivation {
       override lazy val elemDecoders: Array[DecodeJson[_]] =
         Macros.summonDecoders[A.MirroredElemTypes]
 
-      final def decode(c: HCursor): DecodeResult[A] = inline A match {
-        case m: Mirror.ProductOf[A] =>
-          DecodeResult[A] {
-            if (c.focus.isObject) {
-              val iter = resultIterator(c)
-              val res = new Array[AnyRef](elemCount)
-              var failed: Left[(String, CursorHistory), AnyRef] = null
-              var i: Int = 0
+      final def decode(c: HCursor): DecodeResult[A] = {
+        DecodeResult[A] {
+          if (c.focus.isObject) {
+            val iter = resultIterator(c)
+            val res = new Array[AnyRef](elemCount)
+            var failed: Left[(String, CursorHistory), AnyRef] = null
+            var i: Int = 0
 
-              while (iter.hasNext && (failed eq null)) {
-                iter.next.result match {
-                  case Right(value) =>
-                    res(i) = value
-                  case l@Left(_) =>
-                    failed = l
-                }
-                i += 1
+            while (iter.hasNext && (failed eq null)) {
+              iter.next.result match {
+                case Right(value) =>
+                  res(i) = value
+                case l@Left(_) =>
+                  failed = l
               }
-
-              if (failed eq null) {
-                Right(m.fromProduct(new ArrayProduct(res)))
-              } else {
-                failed.map(_.asInstanceOf[A])
-              }
-            } else {
-              Left(("not object", c.history))
+              i += 1
             }
+
+            if (failed eq null) {
+              Right(A.fromProduct(new ArrayProduct(res)))
+            } else {
+              failed.map(_.asInstanceOf[A])
+            }
+          } else {
+            Left(("not object", c.history))
           }
+        }
       }
     }
 }
