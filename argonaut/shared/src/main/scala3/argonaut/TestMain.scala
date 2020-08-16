@@ -10,20 +10,22 @@ object TestMain {
     test(d1, e1)
  
     val c = argonaut.CodecJson.derive[Foo]
-    test(d1, e1)
+    test(c, c)
   }
     
   def test(d: DecodeJson[Foo], e: EncodeJson[Foo]) = {
       
     val foo = Foo(3, "a", true)
     val json = e.apply(foo)
+    println(json)
     assert(json == Json.obj(
     "a" -> Json.jNumber(3),
       "b" -> Json.jString("a"),
       "c" -> Json.jBool(true),
     ))
-    
-    assert(Right(foo) == d.decodeJson(json).result)
+    val res = d.decodeJson(json).result
+    println(res)
+    assert(res == Right(foo))
   }
 
 }
