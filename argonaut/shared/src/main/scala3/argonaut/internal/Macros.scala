@@ -31,6 +31,11 @@ object Macros {
     case _: Mirror.ProductOf[A] => DecoderDerivation.derived[A]
   }
 
+  inline final def summonCodec[A]: CodecJson[A] = summonFrom {
+    case codecA: CodecJson[A] => codecA
+    case _: Mirror.ProductOf[A] => CodecDerivation.derived[A]
+  }
+
   inline final def summonLabelsRec[T <: Tuple]: List[String] = inline erasedValue[T] match {
     case _: EmptyTuple => Nil
     case _: (t *: ts) => constValue[t].asInstanceOf[String] :: summonLabelsRec[ts]
@@ -64,6 +69,14 @@ trait EncoderDerivation {
 }
 
 object EncoderDerivation extends EncoderDerivation
+
+object CodecDerivation {
+  inline final def derived[A](using inline A: Mirror.ProductOf[A]): CodecJson[A] =
+    CodecJson.derived[A](
+      E = EncoderDerivation.derived[A],
+      D = DecoderDerivation.derived[A],
+    )
+}
 
 trait DecoderDerivation {
 
