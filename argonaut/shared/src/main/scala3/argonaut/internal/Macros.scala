@@ -2,17 +2,8 @@ package argonaut
 package internal
 
 import scala.quoted._
-import scala.quoted.util._
-import scala.deriving._
-import scala.collection.mutable.WrappedArray
-import scala.compiletime.{constValue, erasedValue, error, summonFrom, summonInline}
-
-inline def summonAll[T <: Tuple]: List[EncodeJson[_]] = {
-  inline erasedValue[T] match {
-    case _: EmptyTuple => Nil
-    case _: (t *: ts) => summonInline[EncodeJson[t]] :: summonAll[ts]
-  }
-}
+import scala.deriving.{ArrayProduct, Mirror}
+import scala.compiletime.{constValue, erasedValue, summonFrom}
 
 object Macros {
   inline final def summonLabels[T <: Tuple]: Array[String] = summonLabelsRec[T].toArray
@@ -49,7 +40,7 @@ object Macros {
 
   inline final def summonEncodersRec[T <: Tuple]: List[EncodeJson[_]] =
     inline erasedValue[T] match {
-      case _: EmptyTuple.type => Nil
+      case _: EmptyTuple => Nil
       case _: (t *: ts) => summonEncoder[t] :: summonEncodersRec[ts]
     }
 }
