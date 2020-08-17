@@ -86,7 +86,7 @@ object Macros {
         elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(elemLabels(index)))
 
       final def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
-        new Iterator[DecodeResult[AnyRef]] {
+        new AbstractIterator[DecodeResult[AnyRef]] {
           private[this] var i: Int = 0
 
           def hasNext: Boolean = i < elemCount
