@@ -8,12 +8,6 @@ import scala.compiletime.{constValueTuple, erasedValue, summonFrom}
 
 object Macros {
 
-  inline def summonDecoders[T <: Tuple]: Array[DecodeJson[_]] =
-    summonDecodersRec[T].toArray
-
-  inline def summonEncoders[T <: Tuple]: Array[EncodeJson[_]] =
-    summonEncodersRec[T].toArray
-
   inline def summonEncoder[A]: EncodeJson[A] =
     summonFrom {
       case x: EncodeJson[A] =>
@@ -38,25 +32,25 @@ object Macros {
         Macros.derivedCodec[A]
     }
 
-  inline def summonDecodersRec[T <: Tuple]: List[DecodeJson[_]] =
+  inline def summonDecoders[T <: Tuple]: Tuple.Map[T, DecodeJson] =
     inline erasedValue[T] match {
       case _: EmptyTuple =>
-        Nil
+        EmptyTuple
       case _: (t *: ts) =>
-        summonDecoder[t] :: summonDecodersRec[ts]
+        summonDecoder[t] *: summonDecoders[ts]
     }
 
-  inline def summonEncodersRec[T <: Tuple]: List[EncodeJson[_]] =
+  inline def summonEncoders[T <: Tuple]: Tuple.Map[T, EncodeJson] =
     inline erasedValue[T] match {
       case _: EmptyTuple =>
-        Nil
+        EmptyTuple
       case _: (t *: ts) =>
-        summonEncoder[t] :: summonEncodersRec[ts]
+        summonEncoder[t] *: summonEncoders[ts]
     }
 
   inline def derivedEncoder[A](using inline A: Mirror.ProductOf[A]): EncodeJson[A] =
     new EncodeJson[A] {
-      private[this] val elemEncoders: Array[EncodeJson[_]] =
+      private[this] val elemEncoders: Tuple.Map[A.MirroredElemTypes, EncodeJson] =
         Macros.summonEncoders[A.MirroredElemTypes]
 
       override def encode(a: A): Json =
@@ -66,7 +60,7 @@ object Macros {
 
       private[this] def createJsonObject(value: Product): JsonObject = {
         def encodeWith(index: Int)(p: Any): (String, Json) = {
-          (value.productElementName(index), elemEncoders(index).asInstanceOf[EncodeJson[Any]].apply(p))
+          (value.productElementName(index), productElement[EncodeJson[Any]](elemEncoders, index).apply(p))
         }
         val elems: Iterator[Any] = value.productIterator
         @tailrec def loop(i: Int, acc: JsonObject): JsonObject = {
@@ -89,8 +83,9 @@ object Macros {
 
   inline def derivedDecoder[A](using inline A: Mirror.ProductOf[A]): DecodeJson[A] =
     new DecodeJson[A] {
-      private[this] def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] =
-        elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(productElement(elemLabels, index)))
+      private[this] def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] = {
+        productElement[DecodeJson[AnyRef]](elemDecoders, index).tryDecode(c.downField(productElement(elemLabels, index)))
+      }
 
       private[this] def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
         new AbstractIterator[DecodeResult[AnyRef]] {
@@ -108,7 +103,7 @@ object Macros {
       private[this] val elemLabels: Tuple.Widen[A.MirroredElemLabels] =
         constValueTuple[A.MirroredElemLabels]
 
-      private[this] val elemDecoders: Array[DecodeJson[_]] =
+      private[this] val elemDecoders: Tuple.Map[A.MirroredElemTypes, DecodeJson] =
         Macros.summonDecoders[A.MirroredElemTypes]
 
       private[this] val elemCount = elemDecoders.size
