@@ -3,12 +3,10 @@ package internal
 
 import scala.annotation.tailrec
 import scala.collection.AbstractIterator
-import scala.deriving.{ArrayProduct, Mirror}
-import scala.compiletime.{constValue, erasedValue, summonFrom}
+import scala.deriving.{ArrayProduct, Mirror, productElement}
+import scala.compiletime.{constValueTuple, erasedValue, summonFrom}
 
 object Macros {
-  inline def summonLabels[T <: Tuple]: Array[String] =
-    summonLabelsRec[T].toArray
 
   inline def summonDecoders[T <: Tuple]: Array[DecodeJson[_]] =
     summonDecodersRec[T].toArray
@@ -38,14 +36,6 @@ object Macros {
         x
       case _: Mirror.ProductOf[A] =>
         Macros.derivedCodec[A]
-    }
-
-  inline def summonLabelsRec[T <: Tuple]: List[String] =
-    inline erasedValue[T] match {
-      case _: EmptyTuple =>
-        Nil
-      case _: (t *: ts) =>
-        constValue[t].asInstanceOf[String] :: summonLabelsRec[ts]
     }
 
   inline def summonDecodersRec[T <: Tuple]: List[DecodeJson[_]] =
@@ -100,7 +90,7 @@ object Macros {
   inline def derivedDecoder[A](using inline A: Mirror.ProductOf[A]): DecodeJson[A] =
     new DecodeJson[A] {
       private[this] def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] =
-        elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(elemLabels(index)))
+        elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(productElement(elemLabels, index)))
 
       private[this] def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
         new AbstractIterator[DecodeResult[AnyRef]] {
@@ -115,7 +105,8 @@ object Macros {
           }
         }
 
-      private[this] val elemLabels = Macros.summonLabels[A.MirroredElemLabels]
+      private[this] val elemLabels: Tuple.Widen[A.MirroredElemLabels] =
+        constValueTuple[A.MirroredElemLabels]
 
       private[this] val elemDecoders: Array[DecodeJson[_]] =
         Macros.summonDecoders[A.MirroredElemTypes]
