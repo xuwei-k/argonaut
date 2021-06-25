@@ -114,7 +114,7 @@ object CodecSpecification extends ArgonautSpec {
   }
 
   object CodecInstances {
-    implicit val testClassCodec: CodecJson[TestClass] = CodecJson.casecodec22(TestClass.apply, TestClass.unapply)("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v")
+    implicit val testClassCodec: CodecJson[TestClass] = CodecJson.casecodec22(TestClass.apply, a => Option(Tuple.fromProductTyped(a)))("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v")
   }
 
   object derived {

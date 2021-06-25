@@ -95,7 +95,13 @@ object build {
       }
     , releaseTagName := tagName.value
     , libraryDependencies ++= reflect.value
-    , specs2Version := "4.12.2"
+    , specs2Version := {
+        if (isScala3.value) {
+          "SPECS2-5.0.0-RC0"
+        } else {
+          "4.12.2"
+        }
+      }
     , ThisBuild / mimaReportSignatureProblems := true
     /*
     , mimaBinaryIssueFilters ++= {
@@ -129,7 +135,7 @@ object build {
         scalacheckVersion := "1.15.3",
         libraryDependencies ++= Seq(
             "org.scalaz"               %%% "scalaz-core"               % scalazVersion            % "test" cross CrossVersion.for3Use2_13
-          , "org.specs2"               %%% "specs2-scalacheck"         % specs2Version.value      % "test" cross CrossVersion.for3Use2_13
+          , "org.specs2"               %%% "specs2-scalacheck"         % specs2Version.value      % "test"
         )
       )
     

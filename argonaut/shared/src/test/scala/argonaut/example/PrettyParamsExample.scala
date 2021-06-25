@@ -7,8 +7,8 @@ object PrettyParamsExample extends ArgonautSpec {
   case class Address(street: String, number: Int, unit: Option[Int])
   case class Person(name: String, age: Int, address: Option[Address], favouriteNumbers: Option[List[Int]])
 
-  implicit val AddressCodecJson: CodecJson[Address] = casecodec3(Address.apply, Address.unapply)("street", "number", "unit")
-  implicit val PersonCodecJson: CodecJson[Person] = casecodec4(Person.apply, Person.unapply)("name", "age", "address", "favouriteNumbers")
+  implicit val AddressCodecJson: CodecJson[Address] = casecodec3(Address.apply, a => Option(Tuple.fromProductTyped(a)))("street", "number", "unit")
+  implicit val PersonCodecJson: CodecJson[Person] = casecodec4(Person.apply, a => Option(Tuple.fromProductTyped(a)))("name", "age", "address", "favouriteNumbers")
 
   val person = Person("fred", 23, Some(Address("street", 123, None)), Some(List(1, 2, 3)))
   val personNoFavouriteNumbers = person.copy(favouriteNumbers = None)
