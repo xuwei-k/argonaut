@@ -8,8 +8,6 @@ import argonaut.JsonCats._
 import monocle.function.Plated
 import monocle.law.discipline.{PrismTests, TraversalTests}
 
-import cats.syntax.all._
-
 object JsonMonocleSpecification extends ArgonautSpec {
 
   // Retired for the moment:

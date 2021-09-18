@@ -5,8 +5,6 @@ import argonaut.PrettyParamsCats._
 import monocle.law.discipline.LensTests
 import org.scalacheck.Arbitrary._
 
-import cats.syntax.all._
-
 object PrettyParamsMonocleSpecification extends ArgonautSpec {
   def is = s2"""
   Lenses
