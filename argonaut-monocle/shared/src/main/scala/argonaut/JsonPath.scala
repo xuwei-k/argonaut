@@ -33,13 +33,13 @@ final case class JsonPath(json: Optional[Json, Json]) extends Dynamic {
   def apply(i: Int): JsonPath = index(i)
 
   def index(i: Int): JsonPath =
-    JsonPath(json andThen jArrayPrism composeOptional Index.index(i))
+    JsonPath(json andThen jArrayPrism andThen Index.index(i))
 
   def each: JsonTraversalPath =
     JsonTraversalPath(json andThen jDescendants)
 
   def filterByIndex(p: Int => Boolean): JsonTraversalPath =
-    JsonTraversalPath(arr composeTraversal FilterIndex.filterIndex(p))
+    JsonTraversalPath(arr andThen FilterIndex.filterIndex[List[Json], Int, Json](p))
 
   def filterByField(p: String => Boolean): JsonTraversalPath =
     JsonTraversalPath(obj andThen FilterIndex.filterIndex(p))
@@ -54,7 +54,7 @@ final case class JsonPath(json: Optional[Json, Json]) extends Dynamic {
 object JsonPath extends JsonPaths
 
 trait JsonPaths {
-  val root: JsonPath = JsonPath(Optional.id)
+  val root: JsonPath = JsonPath(monocle.Iso.id)
 }
 
 final case class JsonTraversalPath(json: Traversal[Json, Json]) extends Dynamic {
@@ -82,13 +82,13 @@ final case class JsonTraversalPath(json: Traversal[Json, Json]) extends Dynamic 
   def apply(i: Int): JsonTraversalPath = index(i)
 
   def index(i: Int): JsonTraversalPath =
-    JsonTraversalPath(json andThen jArrayPrism composeOptional Index.index(i))
+    JsonTraversalPath(json andThen jArrayPrism andThen Index.index(i))
 
   def each: JsonTraversalPath =
     JsonTraversalPath(json andThen jDescendants)
 
   def filterByIndex(p: Int => Boolean): JsonTraversalPath =
-    JsonTraversalPath(arr composeTraversal FilterIndex.filterIndex(p))
+    JsonTraversalPath(arr andThen FilterIndex.filterIndex(p))
 
   def filterByField(p: String => Boolean): JsonTraversalPath =
     JsonTraversalPath(obj andThen FilterIndex.filterIndex(p))
