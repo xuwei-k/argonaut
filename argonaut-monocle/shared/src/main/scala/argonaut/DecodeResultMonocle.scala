@@ -10,8 +10,8 @@ trait DecodeResultMonocles {
     Iso[DecodeResult[A], Either[(String, CursorHistory), A]](_.toEither)(DecodeResult(_))
 
   def success[A]: Prism[DecodeResult[A], A] =
-    decodeResult composePrism either.stdRight
+    decodeResult andThen either.stdRight
 
   def fail[A]: Prism[DecodeResult[A], (String, CursorHistory)] =
-    decodeResult composePrism either.stdLeft
+    decodeResult andThen either.stdLeft
 }

@@ -46,39 +46,39 @@ trait JsonMonocles {
 
   /** A Prism for JSON number values. */
   val jBigDecimalPrism: Prism[Json, BigDecimal] =
-    jNumberPrism composeIso JsonNumberMonocle.jNumberToBigDecimal
+    jNumberPrism andThen JsonNumberMonocle.jNumberToBigDecimal
 
   /**
    * An Optional for JSON number values based on Doubles.
    */
   // val jDoubleOptional: Optional[Json, Double] =
-  //   jNumberPrism composeOptional JsonNumberMonocle.jNumberToDouble
+  //   jNumberPrism andThen JsonNumberMonocle.jNumberToDouble
 
   /**
    * An Optional for JSON number values based on Floats.
    */
   // val jFloatOptional: Optional[Json, Float] =
-  //   jNumberPrism composeOptional JsonNumberMonocle.jNumberToFloat
+  //   jNumberPrism andThen JsonNumberMonocle.jNumberToFloat
 
   /** A Prism for JSON BigInt values. */
   val jBigIntPrism: Prism[Json, BigInt] =
-    jNumberPrism composePrism JsonNumberMonocle.jNumberToBigInt
+    jNumberPrism andThen JsonNumberMonocle.jNumberToBigInt
 
   /** A Prism for JSON Long values. */
   val jLongPrism: Prism[Json, Long] =
-    jNumberPrism composePrism JsonNumberMonocle.jNumberToLong
+    jNumberPrism andThen JsonNumberMonocle.jNumberToLong
 
   /**  A Prism for JSON Int values. */
   val jIntPrism: Prism[Json, Int] =
-    jNumberPrism composePrism JsonNumberMonocle.jNumberToInt
+    jNumberPrism andThen JsonNumberMonocle.jNumberToInt
 
   /** A Prism for JSON Short values. */
   val jShortPrism: Prism[Json, Short] =
-    jNumberPrism composePrism JsonNumberMonocle.jNumberToShort
+    jNumberPrism andThen JsonNumberMonocle.jNumberToShort
 
   /** A Prism for JSON Byte values. */
   def jBytePrism: Prism[Json, Byte] =
-    jNumberPrism composePrism JsonNumberMonocle.jNumberToByte
+    jNumberPrism andThen JsonNumberMonocle.jNumberToByte
 
   /** A Prism for JSON string values. */
   val jStringPrism: Prism[Json, JsonString] =
