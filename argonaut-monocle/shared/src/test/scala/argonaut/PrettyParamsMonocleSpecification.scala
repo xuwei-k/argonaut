@@ -1,7 +1,7 @@
 package argonaut
 
 import argonaut.Data._
-import argonaut.PrettyParamsScalaz._
+import argonaut.PrettyParamsCats._
 import monocle.law.discipline.LensTests
 import org.scalacheck.Arbitrary._
 

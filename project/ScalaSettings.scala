@@ -12,7 +12,7 @@ object ScalaSettings {
   def Scala212 = "2.12.15"
 
   lazy val all: Seq[Sett] = Def.settings(
-    scalaVersion := Scala212
+    scalaVersion := "3.0.2"
   , crossScalaVersions := Seq(Scala212, "2.13.6")
   , ensimeScalaVersion := Scala212
   , test / fork := true

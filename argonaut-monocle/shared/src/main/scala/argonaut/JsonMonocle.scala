@@ -5,8 +5,8 @@ import argonaut.JsonObjectMonocle._
 import monocle.function.{Each, Plated}
 import monocle.{Prism, Traversal}
 
-import scalaz.Applicative
-import scalaz.Scalaz._
+import cats.Applicative
+import cats.syntax.all._
 
 object JsonMonocle extends JsonMonocles
 
@@ -115,23 +115,23 @@ trait JsonMonocles {
 
   /** a Traversal to all values of a JsonObject or JsonList */
   val jDescendants: Traversal[Json, Json] = new Traversal[Json, Json]{
-    override def modifyF[F[_]](f: Json => F[Json])(s: Json)(implicit F: scalaz.Applicative[F]): F[Json] =
+    override def modifyA[F[_]](f: Json => F[Json])(s: Json)(implicit F: Applicative[F]): F[Json] =
       s.fold(F.pure(s), _ => F.pure(s), _ => F.pure(s), _ => F.pure(s),
-        arr => Each.each[List[Json], Json].modifyF(f)(arr).map(Json.array(_: _*)),
-        obj => Each.each[JsonObject, Json].modifyF(f)(obj).map(Json.jObject)
+        arr => Each.each[List[Json], Json].modifyA(f)(arr).map(Json.array(_: _*)),
+        obj => Each.each[JsonObject, Json].modifyA(f)(obj).map(Json.jObject)
       )
   }
 
   implicit lazy val jsonPlated: Plated[Json] = new Plated[Json] {
     val plate: Traversal[Json, Json] = new Traversal[Json, Json] {
-      def modifyF[F[_]](f: Json => F[Json])(a: Json)(implicit F: Applicative[F]): F[Json] = {
+      def modifyA[F[_]](f: Json => F[Json])(a: Json)(implicit F: Applicative[F]): F[Json] = {
         a.fold(
           F.pure(a),
           b => F.pure(jBool(b)),
           n => F.pure(jNumber(n)),
           s => F.pure(jString(s)),
           _.traverse(f).map(jArray),
-          JsonObjectScalaz.traverse(_, f).map(jObject)
+          JsonObjectCats.traverse(_, f).map(jObject)
         )
       }
     }

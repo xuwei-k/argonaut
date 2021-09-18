@@ -45,18 +45,26 @@ val argonautMonocle = argonautCrossProject(
   , Seq(JVMPlatform, JSPlatform)
 ).settings(
     name := "argonaut-monocle"
+  , conflictWarning := {
+      if (scalaBinaryVersion.value == "3") {
+        // TODO
+        ConflictWarning("warn", Level.Warn, false)
+      } else {
+        conflictWarning.value
+      }
+    }
   , libraryDependencies ++= Seq(
-      "com.github.julien-truffaut"   %%% "monocle-core"              % monocleVersion
-    , "com.github.julien-truffaut"   %%% "monocle-macro"             % monocleVersion
-    , "com.github.julien-truffaut"   %%% "monocle-law"               % monocleVersion % "test"
+      "dev.optics" %%% "monocle-core"  % monocleVersion
+    , "dev.optics" %%% "monocle-macro" % monocleVersion
+    , "dev.optics" %%% "monocle-law"   % monocleVersion % "test"
     )
-).dependsOn(argonaut % "compile->compile;test->test", argonautScalaz % "compile->compile;test->test")
+).dependsOn(argonaut % "compile->compile;test->test", argonautCats % "compile->compile;test->test")
 
 val argonautMonocleJVM = argonautMonocle.jvm
 val argonautMonocleJS  = argonautMonocle.js
 
 
-val argonautCats = argonautCrossProject(
+lazy val argonautCats = argonautCrossProject(
     "argonaut-cats"
   , Seq(JVMPlatform, JSPlatform)
 ).settings(

@@ -6,7 +6,7 @@ import monocle.function.{At, FilterIndex, Index}
 import monocle.{Fold, Optional, Traversal}
 
 import scala.language.dynamics
-import scalaz.Monoid
+import cats.Monoid
 
 final case class JsonPath(json: Optional[Json, Json]) extends Dynamic {
   def `null`: Optional[Json, Unit] = json composePrism jNullPrism
@@ -148,13 +148,13 @@ object OpticsHelper {
   def parse[A](implicit decode: DecodeJson[A]): Fold[Json, A] =
     new Fold[Json, A] {
       def foldMap[M](f: A => M)(json: Json)(implicit ev: Monoid[M]): M =
-        decode.decodeJson(json).fold((_,_) => ev.zero, f)
+        decode.decodeJson(json).fold((_,_) => ev.empty, f)
     }
 
   /** Select if a value matches a predicate */
   def select[A](p: A => Boolean): Fold[A, A] =
     new Fold[A, A] {
       def foldMap[M](f: A => M)(a: A)(implicit ev: Monoid[M]): M =
-        if(p(a)) f(a) else ev.zero
+        if(p(a)) f(a) else ev.empty
     }
 }
