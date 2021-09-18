@@ -8,8 +8,7 @@ import argonaut.JsonCats._
 import monocle.function.Plated
 import monocle.law.discipline.{PrismTests, TraversalTests}
 
-import scalaz.std.anyVal._
-import scalaz.std.list._
+import cats.syntax.all._
 
 object JsonMonocleSpecification extends ArgonautSpec {
 

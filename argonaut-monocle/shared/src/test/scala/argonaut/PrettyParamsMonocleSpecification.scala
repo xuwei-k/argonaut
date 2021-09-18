@@ -5,8 +5,7 @@ import argonaut.PrettyParamsCats._
 import monocle.law.discipline.LensTests
 import org.scalacheck.Arbitrary._
 
-import scalaz.std.anyVal._
-import scalaz.std.string._
+import cats.syntax.all._
 
 object PrettyParamsMonocleSpecification extends ArgonautSpec {
   def is = s2"""
