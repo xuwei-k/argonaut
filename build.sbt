@@ -83,6 +83,7 @@ val argonautMonocle = argonautCrossProject(
 ).settings(
     name := "argonaut-monocle"
   , conflictWarningSetting
+  , previousVersions --= (0 to 6).map(n => s"6.3.$n")
   , libraryDependencies ++= Seq(
       "dev.optics"   %%% "monocle-core"              % monocleVersion
     , "dev.optics"   %%% "monocle-macro"             % monocleVersion

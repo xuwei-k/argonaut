@@ -50,14 +50,7 @@ object build {
     }
   }
 
-  private[this] val previousVersions = Def.setting {
-    val last = 6
-    if (isScala3.value) {
-      (3 to last).map(n => s"6.3.$n")
-    } else {
-      (0 to last).map(n => s"6.3.$n")
-    }
-  }
+  val previousVersions = settingKey[Seq[String]]("")
 
   def nativeTestId = "nativeTest"
   def nativeParentId = "nativeParent"
@@ -81,6 +74,14 @@ object build {
           Seq("-sourcepath", base, "-doc-source-url", "https://github.com/argonaut-io/argonaut/tree/" + tag + "€{FILE_PATH}.scala")
         }
       }
+    , previousVersions := {
+        val last = 6
+        if (isScala3.value) {
+          (3 to last).map(n => s"6.3.$n")
+        } else {
+          (0 to last).map(n => s"6.3.$n")
+        }
+      }
     , (Compile / doc / sources) := {
         val src = (Compile / doc / sources).value
         if (isScala3.value) {
@@ -98,7 +99,7 @@ object build {
           "4.12.2"
         }
       }
-    , ThisBuild / mimaReportSignatureProblems := {
+    , mimaReportSignatureProblems := {
         isScala3.value == false
       }
     /*
