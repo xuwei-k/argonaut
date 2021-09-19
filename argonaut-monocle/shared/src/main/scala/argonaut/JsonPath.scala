@@ -33,7 +33,7 @@ final case class JsonPath(json: Optional[Json, Json]) extends Dynamic {
   def apply(i: Int): JsonPath = index(i)
 
   def index(i: Int): JsonPath =
-    JsonPath(json andThen jArrayPrism andThen Index.index(i))
+    JsonPath(json andThen jArrayPrism andThen Index.index[List[Json], Int, Json](i))
 
   def each: JsonTraversalPath =
     JsonTraversalPath(json andThen jDescendants)
@@ -82,13 +82,13 @@ final case class JsonTraversalPath(json: Traversal[Json, Json]) extends Dynamic 
   def apply(i: Int): JsonTraversalPath = index(i)
 
   def index(i: Int): JsonTraversalPath =
-    JsonTraversalPath(json andThen jArrayPrism andThen Index.index(i))
+    JsonTraversalPath(json andThen jArrayPrism andThen Index.index[List[Json], Int, Json](i))
 
   def each: JsonTraversalPath =
     JsonTraversalPath(json andThen jDescendants)
 
   def filterByIndex(p: Int => Boolean): JsonTraversalPath =
-    JsonTraversalPath(arr andThen FilterIndex.filterIndex(p))
+    JsonTraversalPath(arr andThen FilterIndex.filterIndex[List[Json], Int, Json](p))
 
   def filterByField(p: String => Boolean): JsonTraversalPath =
     JsonTraversalPath(obj andThen FilterIndex.filterIndex(p))

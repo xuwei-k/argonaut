@@ -9,11 +9,13 @@ object ScalaSettings {
     Seq("-Ywarn-unused:imports")
   }
 
-  def Scala212 = "2.12.15"
+  def Scala212 = "2.12.5"
+  def Scala213 = "2.13.6"
+  def Scala3 = "3.0.2"
 
   lazy val all: Seq[Sett] = Def.settings(
-    scalaVersion := "2.13.6"
-  , crossScalaVersions := Seq(Scala212, "2.13.6", "3.0.2")
+    scalaVersion := Scala213
+  , crossScalaVersions := Seq(Scala212, Scala213, Scala3)
   , ensimeScalaVersion := Scala212
   , test / fork := true
   , scalacOptions ++= {

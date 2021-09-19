@@ -63,6 +63,7 @@ object build {
   def nativeParentId = "nativeParent"
 
   val nativeSettings = Seq(
+    crossScalaVersions -= ScalaSettings.Scala3,
     Test / sources := Nil // disable native test
   )
 
@@ -71,8 +72,7 @@ object build {
     ReleasePlugin.projectSettings ++
     PublishSettings.all ++
     Def.settings(
-      addCommandAlias("SetScala3", s"++ ${PublishSettings.Scala3}!")
-    , (Compile / doc / scalacOptions) ++= {
+      (Compile / doc / scalacOptions) ++= {
         val tag = tagOrHash.value
         val base = (LocalRootProject / baseDirectory).value.getAbsolutePath
         if (isScala3.value) {

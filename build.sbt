@@ -1,5 +1,39 @@
 import build._
 
+lazy val disableScala2_12 = Def.settings(
+  mimaPreviousArtifacts := {
+    if (scalaBinaryVersion.value == "2.12") {
+      Set.empty
+    } else {
+      mimaPreviousArtifacts.value
+    }
+  },
+  libraryDependencies := {
+    if (scalaBinaryVersion.value == "2.12") {
+      Nil
+    } else {
+      libraryDependencies.value
+    }
+  },
+  Seq(Compile, Test).map { x =>
+    (x / sources) := {
+      if (scalaBinaryVersion.value == "2.12") {
+        Nil
+      } else {
+        (x / sources).value
+      }
+    }
+  },
+  Test / test := {
+    if (scalaBinaryVersion.value == "2.12") {
+      ()
+    } else {
+      (Test / test).value
+    }
+  },
+  publish / skip := (scalaBinaryVersion.value == "2.12")
+)
+
 val argonaut = argonautCrossProject(
     "argonaut"
   , Seq(JVMPlatform, JSPlatform, NativePlatform)
@@ -54,6 +88,7 @@ val argonautMonocle = argonautCrossProject(
     , "dev.optics" %%% "monocle-macro" % monocleVersion
     , "dev.optics" %%% "monocle-law"   % monocleVersion % "test"
     )
+  , disableScala2_12
 ).dependsOn(argonaut % "compile->compile;test->test", argonautCats % "compile->compile;test->test")
 
 val argonautMonocleJVM = argonautMonocle.jvm
