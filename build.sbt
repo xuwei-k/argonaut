@@ -81,7 +81,7 @@ val argonautMonocle = argonautCrossProject(
     "argonaut-monocle"
   , Seq(JVMPlatform, JSPlatform)
 ).settings(
-    name := "argonaut-monocle"
+    name := "argonaut-monocle3"
   , conflictWarningSetting
   , previousVersions --= (0 to 6).map(n => s"6.3.$n")
   , libraryDependencies ++= Seq(

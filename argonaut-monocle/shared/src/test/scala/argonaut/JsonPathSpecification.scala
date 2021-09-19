@@ -3,6 +3,7 @@ package argonaut
 import argonaut.Argonaut._
 import org.specs2.mutable.Specification
 import argonaut.JsonPath.root
+import argonaut.TestCompat._
 
 class JsonPathSpecification extends Specification {
 
@@ -14,7 +15,7 @@ class JsonPathSpecification extends Specification {
   object  Car {
     implicit val codec: CodecJson[Car] = CodecJson.casecodec3(
       Car.apply,
-      (x: Car) => Option((x.model, x.maxSpeed, x.automatic))
+      (_: Car).asTuple
     )("model", "maxSpeed", "automatic")
   }
 
