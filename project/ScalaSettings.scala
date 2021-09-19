@@ -9,7 +9,7 @@ object ScalaSettings {
     Seq("-Ywarn-unused:imports")
   }
 
-  def Scala212 = "2.12.5"
+  def Scala212 = "2.12.15"
   def Scala213 = "2.13.6"
   def Scala3 = "3.0.2"
 

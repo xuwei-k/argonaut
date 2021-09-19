@@ -84,9 +84,9 @@ val argonautMonocle = argonautCrossProject(
     name := "argonaut-monocle"
   , conflictWarningSetting
   , libraryDependencies ++= Seq(
-      "dev.optics" %%% "monocle-core"  % monocleVersion
-    , "dev.optics" %%% "monocle-macro" % monocleVersion
-    , "dev.optics" %%% "monocle-law"   % monocleVersion % "test"
+      "dev.optics"   %%% "monocle-core"              % monocleVersion
+    , "dev.optics"   %%% "monocle-macro"             % monocleVersion
+    , "dev.optics"   %%% "monocle-law"               % monocleVersion % "test"
     )
   , disableScala2_12
 ).dependsOn(argonaut % "compile->compile;test->test", argonautCats % "compile->compile;test->test")
