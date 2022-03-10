@@ -100,66 +100,71 @@ object Macros {
     )
 
   inline def derivedDecoder[A](using inline A: Mirror.ProductOf[A]): DecodeJson[A] =
-    new DecodeJson[A] {
-      implicit def self: DecodeJson[A] = this // for recursive type
+    new DecodeImpl[A](
+      A = A,
+      elemLabels = Macros.summonLabels[A.MirroredElemLabels],
+      elemDecoders = Macros.summonDecoders[A.MirroredElemTypes]
+    )
 
-      private[this] def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] =
-        elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(elemLabels(index)))
+  class DecodeImpl[A](
+    A: Mirror.ProductOf[A],
+    elemLabels: Array[String],
+    elemDecoders: Array[DecodeJson[_]],
+  ) extends DecodeJson[A] {
+    implicit private def self: DecodeJson[A] = this // for recursive type
 
-      private[this] def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
-        new AbstractIterator[DecodeResult[AnyRef]] {
-          private[this] var i: Int = 0
+    private[this] def decodeWith(index: Int)(c: HCursor): DecodeResult[AnyRef] =
+      elemDecoders(index).asInstanceOf[DecodeJson[AnyRef]].tryDecode(c.downField(elemLabels(index)))
 
-          def hasNext: Boolean = i < elemCount
+    private[this] def resultIterator(c: HCursor): Iterator[DecodeResult[AnyRef]] =
+      new AbstractIterator[DecodeResult[AnyRef]] {
+        private[this] var i: Int = 0
 
-          def next: DecodeResult[AnyRef] = {
-            val result = decodeWith(i)(c)
-            i += 1
-            result
+        def hasNext: Boolean = i < elemCount
+
+        def next: DecodeResult[AnyRef] = {
+          val result = decodeWith(i)(c)
+          i += 1
+          result
+        }
+      }
+
+    private[this] val elemCount = elemDecoders.size
+
+    override def decode(c: HCursor): DecodeResult[A] = {
+      DecodeResult[A] {
+        val iter = resultIterator(c)
+        val res = new Array[AnyRef](elemCount)
+        var failed: (String, CursorHistory) = null
+        var i: Int = 0
+
+        while (iter.hasNext && (failed eq null)) {
+          iter.next.result match {
+            case Right(value) =>
+              res(i) = value
+            case Left(l) =>
+              failed = l
           }
+          i += 1
         }
 
-      private[this] val elemLabels = Macros.summonLabels[A.MirroredElemLabels]
-
-      private[this] val elemDecoders: Array[DecodeJson[_]] =
-        Macros.summonDecoders[A.MirroredElemTypes]
-
-      private[this] val elemCount = elemDecoders.size
-
-      override def decode(c: HCursor): DecodeResult[A] = {
-        DecodeResult[A] {
-          val iter = resultIterator(c)
-          val res = new Array[AnyRef](elemCount)
-          var failed: (String, CursorHistory) = null
-          var i: Int = 0
-
-          while (iter.hasNext && (failed eq null)) {
-            iter.next.result match {
-              case Right(value) =>
-                res(i) = value
-              case Left(l) =>
-                failed = l
-            }
-            i += 1
-          }
-
-          if (failed eq null) {
-            Right(
-              A.fromProduct(
-                new Product{
-                  override def canEqual(that: Any): Boolean =
-                    true
-                  override def productArity: Int =
-                    res.length
-                  override def productElement(n: Int): Any =
-                    res.apply(n)
-                }
-              )
+        if (failed eq null) {
+          Right(
+            A.fromProduct(
+              new Product{
+                override def canEqual(that: Any): Boolean =
+                  true
+                override def productArity: Int =
+                  res.length
+                override def productElement(n: Int): Any =
+                  res.apply(n)
+              }
             )
-          } else {
-            Left(failed)
-          }
+          )
+        } else {
+          Left(failed)
         }
       }
     }
+  }
 }
