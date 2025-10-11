@@ -27,3 +27,5 @@ jobs:
            "jvmParent/test"
     - run: ls -l target/traces
     - uses: xuwei-k/sbt-trace-mermaid-gantt@20a7b4b3be445f2f9054601b7a7b7f0648e661b0
+      with:
+        min-duration: 1000
