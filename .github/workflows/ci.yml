@@ -25,6 +25,4 @@ jobs:
            -jvm-opts .github/workflows/.jvmopts
            "Test/compile"
     - run: ls -l target/traces
-    - uses: xuwei-k/chrome-trace-to-mermaid-gantt@670b02a9c877411e1c251762357a5b6109ca5d1d
-    - run: cat trace.md
-    - run: cat trace.md >> $GITHUB_STEP_SUMMARY
+    - uses: xuwei-k/sbt-trace-mermaid-gantt@8769ba79464d4332f081082fd446ded5e4228d26
