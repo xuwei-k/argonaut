@@ -25,4 +25,4 @@ jobs:
            -jvm-opts .github/workflows/.jvmopts
            "Test/compile"
     - run: ls -l target/traces
-    - uses: xuwei-k/sbt-trace-mermaid-gantt@027796285dcc6df5c04a82bbca620bae0692dbe8
+    - uses: xuwei-k/sbt-trace-mermaid-gantt@46a704649c82a82139760b4f1b66d52d553097ec
