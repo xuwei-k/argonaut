@@ -24,5 +24,6 @@ jobs:
            -Dsbt.traces=true
            -jvm-opts .github/workflows/.jvmopts
            "Test/compile"
+           "jvmParent/test"
     - run: ls -l target/traces
-    - uses: xuwei-k/sbt-trace-mermaid-gantt@8fb7e6743bf6d6f971eb1043d12beadf276f9697
+    - uses: xuwei-k/sbt-trace-mermaid-gantt@e1a12f33c594dfed7fdb87804e1faf1e6bc049c9
