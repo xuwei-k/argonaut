@@ -15,7 +15,7 @@ val argonaut = projectMatrix
     settings = jvmSettings,
   )
   .nativePlatform(
-    scalaVersions = scalaVersions,
+    scalaVersions = Nil,
     settings = nativeSettings
   )
   .jsPlatform(
@@ -39,7 +39,7 @@ val argonautScalaz = projectMatrix
     settings = jvmSettings,
   )
   .nativePlatform(
-    scalaVersions = scalaVersions,
+    scalaVersions = Nil,
     settings = nativeSettings
   )
   .jsPlatform(
@@ -65,7 +65,7 @@ val argonautMonocle = projectMatrix
     settings = jvmSettings,
   )
   .nativePlatform(
-    scalaVersions = scalaVersions.filterNot(ScalaSettings.Scala212 == _),
+    scalaVersions = Nil.filterNot(ScalaSettings.Scala212 == _),
     settings = Def.settings(
       nativeSettings,
       mimaPreviousArtifacts := Set.empty
@@ -93,7 +93,7 @@ lazy val argonautCats = projectMatrix
     settings = jvmSettings,
   )
   .nativePlatform(
-    scalaVersions = scalaVersions,
+    scalaVersions = Nil,
     settings = nativeSettings
   )
   .jsPlatform(
@@ -117,7 +117,7 @@ val argonautJawn = projectMatrix
     settings = jvmSettings,
   )
   .nativePlatform(
-    scalaVersions = scalaVersions,
+    scalaVersions = Nil,
     settings = nativeSettings
   )
   .jsPlatform(

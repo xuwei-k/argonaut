@@ -10,7 +10,7 @@ object ScalaSettings {
 
   def Scala212 = "2.12.21"
   def Scala213 = "2.13.18"
-  def Scala3 = sys.props.getOrElse("argonaut_scala_3_version", "3.3.7")
+  def Scala3 = sys.props.getOrElse("argonaut_scala_3_version", "3.3.8-RC1")
 
   val scalaVersions = Seq(Scala212, Scala213, Scala3)
 
@@ -18,6 +18,8 @@ object ScalaSettings {
     scalacOptions ++= {
       if (build.isScala3.value) {
         Seq(
+          "-Yfuture-lazy-vals",
+          "-release:11",
           "-Wconf:msg=Implicit parameters should be provided with a `using` clause:error"
         )
       } else {
